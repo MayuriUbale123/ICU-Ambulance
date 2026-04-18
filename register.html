@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediTrack — Register</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="jwt-auth.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-teal: #14b8a6;
+            --accent-teal-hover: #0d9488;
+            --accent-blue: #3b82f6;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            --border-radius: 16px;
+            --transition: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background blobs */
+        .bg-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            animation: blobFloat 12s ease-in-out infinite alternate;
+        }
+        .bg-blob.blob-1 {
+            width: 500px; height: 500px;
+            background: var(--accent-teal);
+            top: -150px; left: -100px;
+            animation-delay: 0s;
+        }
+        .bg-blob.blob-2 {
+            width: 400px; height: 400px;
+            background: var(--accent-blue);
+            bottom: -100px; right: -80px;
+            animation-delay: -4s;
+        }
+        .bg-blob.blob-3 {
+            width: 300px; height: 300px;
+            background: #8b5cf6;
+            top: 50%; left: 60%;
+            animation-delay: -8s;
+        }
+
+        @keyframes blobFloat {
+            0%   { transform: translate(0, 0) scale(1); }
+            50%  { transform: translate(30px, -20px) scale(1.05); }
+            100% { transform: translate(-20px, 30px) scale(0.95); }
+        }
+
+        /* Login Card */
+        .login-card {
+            position: relative;
+            z-index: 10;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 48px 40px;
+            width: 420px;
+            max-width: 92%;
+            box-shadow: var(--glass-shadow);
+            animation: cardEntry 0.6s ease-out;
+        }
+
+        @keyframes cardEntry {
+            from { opacity: 0; transform: translateY(24px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Branding */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .brand-icon {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, var(--accent-teal), var(--accent-blue));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .brand h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #14b8a6, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .login-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 36px;
+            line-height: 1.5;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--text-secondary);
+            pointer-events: none;
+            transition: var(--transition);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px 12px 44px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        .form-group input::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-teal);
+            background: rgba(15, 23, 42, 0.9);
+            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+        }
+        .form-group input:focus + .input-icon,
+        .form-group input:focus ~ .input-icon {
+            color: var(--accent-teal);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+        }
+        .toggle-password:hover { color: var(--text-primary); }
+
+        /* Remember me & Forgot */
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+        .remember-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .remember-label input[type="checkbox"] {
+            accent-color: var(--accent-teal);
+            width: 16px; height: 16px;
+            cursor: pointer;
+        }
+        .forgot-link {
+            font-size: 13px;
+            color: var(--accent-teal);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        .forgot-link:hover { color: var(--accent-teal-hover); }
+
+        /* Submit button */
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-teal), #0ea5e9);
+            color: #0f172a;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .login-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(20, 184, 166, 0.35);
+        }
+        .login-btn:active { transform: translateY(0); }
+
+        .login-btn.loading {
+            pointer-events: none;
+            color: transparent;
+        }
+        .login-btn .spinner {
+            display: none;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 22px; height: 22px;
+            border: 3px solid rgba(15, 23, 42, 0.3);
+            border-top-color: #0f172a;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        .login-btn.loading .spinner { display: block; }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+        .divider span {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Demo credentials */
+        .demo-box {
+            background: rgba(20, 184, 166, 0.08);
+            border: 1px solid rgba(20, 184, 166, 0.2);
+            border-radius: 10px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .demo-box .demo-icon {
+            color: var(--accent-teal);
+            flex-shrink: 0;
+        }
+        .demo-box p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .demo-box strong {
+            color: var(--text-primary);
+        }
+
+        /* Error message */
+        .error-msg {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: #fca5a5;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: shake 0.4s ease;
+        }
+        .error-msg.visible { display: flex; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        /* Language Selector */
+        .lang-selector {
+            position: absolute;
+            top: 24px;
+            right: 32px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            z-index: 20;
+            color: var(--text-secondary);
+        }
+        .lang-selector select {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+        }
+        .lang-selector select option {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Background blobs -->
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    <div class="bg-blob blob-3"></div>
+
+    <!-- Language Selector (Roadmap UI) -->
+    <div class="lang-selector">
+        <i data-lucide="globe" style="width:16px;height:16px;"></i>
+        <select id="lang-select">
+            <option value="en">English</option>
+            <option value="mr">मराठी (Marathi)</option>
+            <option value="hi">हिंदी (Hindi)</option>
+        </select>
+    </div>
+
+    <!-- Login Card -->
+    <div class="login-card">
+        <div class="brand">
+            <div class="brand-icon">
+                <i data-lucide="activity" style="width:24px;height:24px;"></i>
+            </div>
+            <h1>MediTrack</h1>
+        </div>
+        <p class="login-subtitle">Create an account to join the MediTrack Emergency Network.</p>
+
+        <div id="error-msg" class="error-msg">
+            <i data-lucide="alert-circle" style="width:18px;height:18px;flex-shrink:0;"></i>
+            <span id="error-text">Invalid credentials. Please try again.</span>
+        </div>
+
+        <form id="register-form" autocomplete="off">
+            <div class="form-group">
+                <label for="reg-name">Full Name</label>
+                <div class="input-wrapper">
+                    <input type="text" id="reg-name" placeholder="John Doe" required>
+                    <i data-lucide="user" class="input-icon" style="width:18px;height:18px;"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="reg-role">Account Type</label>
+                <div class="input-wrapper">
+                    <select id="reg-role" style="width: 100%; padding: 12px 14px 12px 44px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 14px; appearance: none; cursor: pointer;">
+                        <option value="patient">Patient / User</option>
+                        <option value="nurse">Ambulance Driver / Nurse</option>
+                        <option value="admin">Hospital Admin</option>
+                    </select>
+                    <i data-lucide="shield" class="input-icon" style="width:18px;height:18px;"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="reg-email">Email Address</label>
+                <div class="input-wrapper">
+                    <input type="email" id="reg-email" placeholder="you@example.com" required>
+                    <i data-lucide="mail" class="input-icon" style="width:18px;height:18px;"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="reg-password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="reg-password" placeholder="Create a password" required>
+                    <i data-lucide="lock" class="input-icon" style="width:18px;height:18px;"></i>
+                    <button type="button" class="toggle-password" id="toggle-pw">
+                        <i data-lucide="eye" style="width:18px;height:18px;" id="eye-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="login-btn" id="reg-btn">
+                Create Account
+                <span class="spinner"></span>
+            </button>
+            <div style="text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-secondary);">
+                Already have an account? <a href="login.html" style="color: var(--accent-teal); text-decoration: none; font-weight: 600;">Sign In</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Initialize icons
+        lucide.createIcons();
+
+        // If already logged in, redirect to respective dashboard
+        const existingAuth = JWTAuth.checkAuth();
+        if (existingAuth.authenticated) {
+            let nextPage = 'patient.html';
+            if (existingAuth.user.role === 'admin') nextPage = 'admin.html';
+            else if (['nurse', 'doctor', 'ambulance'].includes(existingAuth.user.role)) nextPage = 'driver.html';
+            window.location.href = nextPage;
+        }
+
+        const form = document.getElementById('register-form');
+        const regBtn = document.getElementById('reg-btn');
+        const errorMsg = document.getElementById('error-msg');
+        const errorText = document.getElementById('error-text');
+        const togglePw = document.getElementById('toggle-pw');
+        const passwordInput = document.getElementById('reg-password');
+
+        // Toggle password visibility
+        let pwVisible = false;
+        togglePw.addEventListener('click', () => {
+            pwVisible = !pwVisible;
+            passwordInput.type = pwVisible ? 'text' : 'password';
+            const eyeIcon = document.getElementById('eye-icon');
+            eyeIcon.setAttribute('data-lucide', pwVisible ? 'eye-off' : 'eye');
+            lucide.createIcons();
+        });
+
+        // Register logic (Simulated)
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            errorMsg.classList.remove('visible');
+
+            const name = document.getElementById('reg-name').value.trim();
+            const role = document.getElementById('reg-role').value;
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+
+            // Show loading
+            regBtn.classList.add('loading');
+
+            setTimeout(() => {
+                const result = JWTAuth.register(name, email, password, role);
+                
+                if (result.success) {
+                    let nextPage = 'patient.html';
+                    if (role === 'admin') nextPage = 'admin.html';
+                    else if (['nurse', 'doctor', 'ambulance'].includes(role)) nextPage = 'driver.html';
+                    window.location.href = nextPage;
+                } else {
+                    regBtn.classList.remove('loading');
+                    errorText.textContent = result.error;
+                    errorMsg.classList.add('visible');
+                }
+            }, 1200);
+        });
+    </script>
+</body>
+</html>

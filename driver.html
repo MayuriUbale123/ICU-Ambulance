@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediTrack — Driver Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossorigin>
+    <link rel="preconnect" href="https://b.basemaps.cartocdn.com" crossorigin>
+    <link rel="preconnect" href="https://c.basemaps.cartocdn.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="style.css">
+    <script src="jwt-auth.js"></script>
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+    <style>
+        .page-loader{position:fixed;top:0;left:0;width:100%;height:100%;background:#f0f4f8;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;transition:opacity .3s ease}
+        .page-loader.hidden{opacity:0;pointer-events:none}
+        .loader-spinner{width:48px;height:48px;border:4px solid #e2e8f0;border-top-color:#0ea5e9;border-radius:50%;animation:lspin .6s linear infinite}
+        .loader-text{font-family:'Inter',sans-serif;color:#64748b;font-size:14px;font-weight:500}
+        @keyframes lspin{to{transform:rotate(360deg)}}
+    </style>
+</head>
+<body>
+    <div class="page-loader" id="page-loader">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Loading MediTrack Dashboard...</div>
+    </div>
+    <div class="app-container">
+        <!-- Sidebar Dashboard -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <i data-lucide="activity" class="text-accent"></i>
+                    <h1>MediTrack</h1>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <div class="lang-dropdown">
+                        <select id="app-lang-select" onchange="translateUI(this.value)">
+                            <option value="en">EN</option>
+                            <option value="hi">HI</option>
+                            <option value="mr">MR</option>
+                        </select>
+                    </div>
+                    <button id="logout-btn" class="logout-btn" title="Logout">
+                        <i data-lucide="log-out" style="width:18px;height:18px;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Network & Offline Status -->
+            <div id="network-status" class="network-status online" onclick="toggleOfflineMode()" title="Click to simulate network drop">
+                <i data-lucide="wifi" id="network-icon" style="width:14px;height:14px;"></i>
+                <span id="network-text">System Online</span>
+            </div>
+            <div id="user-greeting" class="user-greeting">
+                <!-- Populated by JS from JWT token -->
+            </div>
+            
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-icon bed-icon">
+                        <i data-lucide="bed"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 data-i18n="availBeds">Available ICU Beds</h3>
+                        <p id="total-beds">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon ambulance-icon">
+                        <i data-lucide="ambulance"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 data-i18n="activeAmbs">Active Ambulances</h3>
+                        <p id="total-ambulances">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon specialist-icon">
+                        <i data-lucide="stethoscope"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 data-i18n="specDuty">Specialists On Duty</h3>
+                        <p id="total-specialists">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h2 data-i18n="filterSpec">Filter by Specialty</h2>
+                <div id="specialty-filters" class="specialty-filter-bar">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <button id="share-location-btn" class="find-nearest-btn share-btn" style="margin-bottom: 8px;">
+                    <i data-lucide="share-2" style="width:18px;height:18px;"></i>
+                    <span id="share-location-text" data-i18n="shareLoc">Share Live Location</span>
+                </button>
+                <div id="location-status" class="location-status hidden">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h2 id="hospital-list-title" data-i18n="nearestHosp">Nearest Hospitals</h2>
+                <div id="hospital-list" class="list-container">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h2 data-i18n="nearbyAmbs">Nearby Ambulances</h2>
+                <div id="ambulance-list" class="list-container">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Map Area -->
+        <main class="map-container">
+            <div class="map-overlay-header">
+                <h2>Real-Time Live Map</h2>
+                <div class="status-indicator">
+                    <span class="pulse-dot"></span> Live Updates Active
+                </div>
+            </div>
+            <div id="map"></div>
+        </main>
+
+        <!-- Booking Modal -->
+        <div id="booking-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-title">Request Resource</h2>
+                    <button id="close-modal" class="icon-button"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body">
+                    <p id="modal-desc" class="modal-subtitle">Confirm your request details below.</p>
+                    <div class="form-group">
+                        <label for="patient-name">Patient Name</label>
+                        <input type="text" id="patient-name" placeholder="Enter full name">
+                    </div>
+                    <div class="form-group" id="specialist-select-group" style="display:none;">
+                        <label for="specialist-select">Select Specialist</label>
+                        <select id="specialist-select">
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="urgency-level">Urgency Level</label>
+                        <select id="urgency-level">
+                            <option value="high">High (Critical)</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <button id="confirm-request" class="primary-btn">Confirm Request</button>
+                </div>
+            </div>
+        </div>
+        <!-- Add Hospital Modal -->
+        <div id="add-hospital-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Register New Hospital</h2>
+                    <button id="close-add-hospital" class="icon-button"><i data-lucide="x"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Hospital Name</label>
+                        <input type="text" id="new-hosp-name" placeholder="e.g. City Care Hospital">
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <div class="form-group" style="flex:1;">
+                            <label>Latitude</label>
+                            <input type="number" step="any" id="new-hosp-lat" placeholder="18.5204">
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label>Longitude</label>
+                            <input type="number" step="any" id="new-hosp-lng" placeholder="73.8567">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Total ICU Beds</label>
+                        <input type="number" id="new-hosp-beds" placeholder="e.g. 20">
+                    </div>
+                    <button id="confirm-add-hospital" class="primary-btn">Register Hospital</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification Container -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script src="app.js"></script>
+    <script>document.getElementById('page-loader')?.classList.add('hidden');setTimeout(()=>{document.getElementById('page-loader')?.remove()},400);</script>
+</body>
+</html>

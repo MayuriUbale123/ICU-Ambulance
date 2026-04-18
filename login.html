@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediTrack — Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="jwt-auth.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-teal: #14b8a6;
+            --accent-teal-hover: #0d9488;
+            --accent-blue: #3b82f6;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            --border-radius: 16px;
+            --transition: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background blobs */
+        .bg-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            animation: blobFloat 12s ease-in-out infinite alternate;
+            will-change: transform;
+            contain: layout style paint;
+            transform: translateZ(0);
+        }
+        .bg-blob.blob-1 {
+            width: 500px; height: 500px;
+            background: var(--accent-teal);
+            top: -150px; left: -100px;
+            animation-delay: 0s;
+        }
+        .bg-blob.blob-2 {
+            width: 400px; height: 400px;
+            background: var(--accent-blue);
+            bottom: -100px; right: -80px;
+            animation-delay: -4s;
+        }
+        .bg-blob.blob-3 {
+            width: 300px; height: 300px;
+            background: #8b5cf6;
+            top: 50%; left: 60%;
+            animation-delay: -8s;
+        }
+
+        @keyframes blobFloat {
+            0%   { transform: translate3d(0, 0, 0) scale(1); }
+            50%  { transform: translate3d(30px, -20px, 0) scale(1.05); }
+            100% { transform: translate3d(-20px, 30px, 0) scale(0.95); }
+        }
+
+        /* Login Card */
+        .login-card {
+            position: relative;
+            z-index: 10;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 48px 40px;
+            width: 420px;
+            max-width: 92%;
+            box-shadow: var(--glass-shadow);
+            animation: cardEntry 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform, opacity;
+        }
+
+        @keyframes cardEntry {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Branding */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .brand-icon {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, var(--accent-teal), var(--accent-blue));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .brand h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #14b8a6, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .login-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 36px;
+            line-height: 1.5;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--text-secondary);
+            pointer-events: none;
+            transition: var(--transition);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px 12px 44px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        .form-group input::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-teal);
+            background: rgba(15, 23, 42, 0.9);
+            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+        }
+        .form-group input:focus + .input-icon,
+        .form-group input:focus ~ .input-icon {
+            color: var(--accent-teal);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+        }
+        .toggle-password:hover { color: var(--text-primary); }
+
+        /* Remember me & Forgot */
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+        .remember-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .remember-label input[type="checkbox"] {
+            accent-color: var(--accent-teal);
+            width: 16px; height: 16px;
+            cursor: pointer;
+        }
+        .forgot-link {
+            font-size: 13px;
+            color: var(--accent-teal);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        .forgot-link:hover { color: var(--accent-teal-hover); }
+
+        /* Submit button */
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-teal), #0ea5e9);
+            color: #0f172a;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .login-btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: none;
+            animation: btnShimmer 3s ease-in-out infinite;
+        }
+        @keyframes btnShimmer {
+            0%, 100% { left: -100%; }
+            50% { left: 150%; }
+        }
+        .login-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(20, 184, 166, 0.35);
+        }
+        .login-btn:active { transform: translateY(0); }
+
+        .login-btn.loading {
+            pointer-events: none;
+            color: transparent;
+        }
+        .login-btn.loading::after { animation: none; opacity: 0; }
+        .login-btn .spinner {
+            display: none;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 22px; height: 22px;
+            border: 3px solid rgba(15, 23, 42, 0.3);
+            border-top-color: #0f172a;
+            border-radius: 50%;
+            animation: spin 0.5s linear infinite;
+        }
+        .login-btn.loading .spinner { display: block; }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Success page-out transition */
+        body.login-success {
+            animation: pageOut 0.4s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+        @keyframes pageOut {
+            to { opacity: 0; transform: scale(1.02); }
+        }
+
+        /* Input focus micro-animation */
+        .form-group input {
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+        .divider span {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Demo credentials */
+        .demo-box {
+            background: rgba(20, 184, 166, 0.08);
+            border: 1px solid rgba(20, 184, 166, 0.2);
+            border-radius: 10px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .demo-box .demo-icon {
+            color: var(--accent-teal);
+            flex-shrink: 0;
+        }
+        .demo-box p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .demo-box strong {
+            color: var(--text-primary);
+        }
+
+        /* Error message */
+        .error-msg {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: #fca5a5;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: shake 0.4s ease;
+        }
+        .error-msg.visible { display: flex; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        /* Language Selector */
+        .lang-selector {
+            position: absolute;
+            top: 24px;
+            right: 32px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            z-index: 20;
+            color: var(--text-secondary);
+        }
+        .lang-selector select {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+        }
+        .lang-selector select option {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Background blobs -->
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    <div class="bg-blob blob-3"></div>
+
+    <!-- Language Selector (Roadmap UI) -->
+    <div class="lang-selector">
+        <i data-lucide="globe" style="width:16px;height:16px;"></i>
+        <select id="lang-select">
+            <option value="en">English</option>
+            <option value="mr">मराठी (Marathi)</option>
+            <option value="hi">हिंदी (Hindi)</option>
+        </select>
+    </div>
+
+    <!-- Login Card -->
+    <div class="login-card">
+        <div class="brand">
+            <div class="brand-icon">
+                <i data-lucide="activity" style="width:24px;height:24px;"></i>
+            </div>
+            <h1>MediTrack</h1>
+        </div>
+        <p class="login-subtitle">Sign in to access the ICU Bed & Ambulance Tracking Dashboard.</p>
+
+        <div id="error-msg" class="error-msg">
+            <i data-lucide="alert-circle" style="width:18px;height:18px;flex-shrink:0;"></i>
+            <span id="error-text">Invalid credentials. Please try again.</span>
+        </div>
+
+        <form id="login-form" autocomplete="off">
+            <div class="form-group">
+                <label for="login-email">Email Address</label>
+                <div class="input-wrapper">
+                    <input type="email" id="login-email" placeholder="you@hospital.org" required>
+                    <i data-lucide="mail" class="input-icon" style="width:18px;height:18px;"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="login-password" placeholder="Enter your password" required>
+                    <i data-lucide="lock" class="input-icon" style="width:18px;height:18px;"></i>
+                    <button type="button" class="toggle-password" id="toggle-pw">
+                        <i data-lucide="eye" style="width:18px;height:18px;" id="eye-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-options">
+                <label class="remember-label">
+                    <input type="checkbox" checked> Remember me
+                </label>
+                <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="login-btn" id="login-btn">
+                Sign In
+                <span class="spinner"></span>
+            </button>
+            <div style="text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-secondary);">
+                Don't have an account? <a href="register.html" style="color: var(--accent-teal); text-decoration: none; font-weight: 600;">Register here</a>
+            </div>
+        </form>
+
+        <div class="divider"><span>Demo</span></div>
+
+        <div class="demo-box">
+            <i data-lucide="info" class="demo-icon" style="width:20px;height:20px;"></i>
+            <p>
+                <strong>Admin:</strong> admin@meditrack.com / admin123<br>
+                <strong>Doctor:</strong> doctor@meditrack.com / doctor123<br>
+                <strong>Patient:</strong> patient@meditrack.com / patient123<br>
+                <span style="color:#f59e0b;font-size:11px;">(To demo Security Block: spam@test.com)</span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize icons
+        lucide.createIcons();
+
+        // If already logged in, redirect immediately (no render needed)
+        const existingAuth = JWTAuth.checkAuth();
+        if (existingAuth.authenticated) {
+            let nextPage = 'patient.html';
+            if (existingAuth.user.role === 'admin') nextPage = 'admin.html';
+            else if (['nurse', 'doctor', 'ambulance'].includes(existingAuth.user.role)) nextPage = 'driver.html';
+            window.location.replace(nextPage);
+        }
+
+        const form = document.getElementById('login-form');
+        const loginBtn = document.getElementById('login-btn');
+        const errorMsg = document.getElementById('error-msg');
+        const errorText = document.getElementById('error-text');
+        const togglePw = document.getElementById('toggle-pw');
+        const passwordInput = document.getElementById('login-password');
+
+        // Toggle password visibility
+        let pwVisible = false;
+        togglePw.addEventListener('click', () => {
+            pwVisible = !pwVisible;
+            passwordInput.type = pwVisible ? 'text' : 'password';
+            const eyeIcon = document.getElementById('eye-icon');
+            eyeIcon.setAttribute('data-lucide', pwVisible ? 'eye-off' : 'eye');
+            lucide.createIcons();
+        });
+
+        // Login with JWT
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            errorMsg.classList.remove('visible');
+
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            // Show loading
+            loginBtn.classList.add('loading');
+
+            // Instant auth — no artificial delay
+            setTimeout(() => {
+                // Fake Request Prevention Simulation (Roadmap feature)
+                if (email === 'spam@test.com') {
+                    loginBtn.classList.remove('loading');
+                    errorMsg.style.background = 'rgba(245, 158, 11, 0.1)';
+                    errorMsg.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+                    errorMsg.style.color = '#fbbf24';
+                    errorText.innerHTML = '<strong>Security Alert:</strong> Device fingerprint flagged for suspicious activity. Temporary block applied.';
+                    errorMsg.classList.add('visible');
+                    return;
+                }
+
+                const result = JWTAuth.login(email, password);
+
+                if (result.success) {
+                    // JWT token created — redirect instantly
+                    let nextPage = 'patient.html';
+                    if (result.user.role === 'admin') nextPage = 'admin.html';
+                    else if (['nurse', 'doctor', 'ambulance'].includes(result.user.role)) nextPage = 'driver.html';
+                    window.location.href = nextPage;
+                } else {
+                    // Failed auth
+                    loginBtn.classList.remove('loading');
+                    errorMsg.style.background = '';
+                    errorMsg.style.borderColor = '';
+                    errorMsg.style.color = '';
+                    errorText.textContent = result.error;
+                    errorMsg.classList.add('visible');
+                }
+            }, 0);
+        });
+    </script>
+</body>
+</html>
